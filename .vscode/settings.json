@@ -1,0 +1,8 @@
+{
+    "explorer.excludeGitIgnore": true,
+    "files.autoSaveWhenNoErrors": true,
+    "files.autoSave": "onFocusChange",
+    "files.readonlyInclude": {
+        "**.lock": true
+    }
+}
