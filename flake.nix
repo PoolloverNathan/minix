@@ -17,14 +17,27 @@
           inherit system;
           nixpkgs = pkgs;
         };
-        devShell = import ./shell.nix {
+        devShells.default = import ./shell.nix {
           inherit pkgs;
         };
         devShells.ide = import ./shell.nix {
           inherit pkgs;
           ide = true;
         };
-        defaultPackage = lib.minecraft."1.20.1";
+        formatter = pkgs.alejandra;
+        packages.default = lib.minecraft."1.20.1";
+        packages.encase = import ./encase.nix {
+          inherit pkgs system;
+          name = "encase-test";
+          ro = {
+            bin = /bin;
+            usr.bin = /usr/bin;
+          };
+          rw = {
+            tmp = /tmp;
+          };
+          command = "ls /";
+        };
       }
     );
 }
