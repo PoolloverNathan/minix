@@ -38,6 +38,10 @@
           };
           command = "ls /";
         };
+        apps.encase = {
+          type = "app";
+          program = packages.encase + /bin/encase.sh;
+        };
       }
     );
 }

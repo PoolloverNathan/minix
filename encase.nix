@@ -34,7 +34,7 @@ in
         ++ map (a: builtins.placeholder "out" + "/" + a.name) (roMounts ++ rwMounts);
     };
   in
-    pkgs.writeScript "encase.sh" ''
+    pkgs.writeScriptBin "encase.sh" ''
       #!${pkgs.bash}/bin/bash
       echo "TODO!"
       ${pkgs.tree}/bin/tree ${rootfs}
