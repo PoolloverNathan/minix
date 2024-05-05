@@ -1,6 +1,6 @@
 { pkgs ? import <nixpkgs> {}, ide ? false }:
 pkgs.mkShell {
-  buildInputs = [pkgs.nix pkgs.git] ++ (if ide then [pkgs.bashInteractive] else []);
+  buildInputs = [pkgs.nix pkgs.git pkgs.bashInteractive];
   shellHook = if ide then ''
     set -x
     exec ${pkgs.vscode-with-extensions.override {

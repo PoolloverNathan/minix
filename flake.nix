@@ -12,7 +12,7 @@
         pkgs = import nixpkgs {
           system = "${system}";
         };
-      in {
+      in rec {
         lib = import ./default.nix {
           inherit system;
           nixpkgs = pkgs;
@@ -24,6 +24,7 @@
           inherit pkgs;
           ide = true;
         };
+        defaultPackage = lib.minecraft."1.20.1";
       }
     );
 }

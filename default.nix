@@ -11,13 +11,18 @@
 let
 inherit (builtins) fetchurl fromJSON readFile toJSON placeholder replaceStrings;
 fetchJSON = a: fromJSON (readFile (fetchurl a));
+fetchJSONsha1 = sha1: url: fromJSON (readFile (nixpkgs.fetchurl { inherit url; hash = "sha1:" + sha1; }));
 inherit (nixpkgs.lib.attrsets) genAttrs;
 in {
-  minecraft = let
+  minecraft =
+  assert## must be in --impure mode to run this build
+    builtins?currentSystem;
+  let
     inherit (builtins) map listToAttrs trace abort;
     raw = fetchJSON "https://launchermeta.mojang.com/mc/game/version_manifest_v2.json";
     gener = { id, url, ... }: { name = id; value = main (fetchJSON { inherit url; }); };
-    main = {
+    main =
+      {
         id,
         libraries,
         downloads,
@@ -33,7 +38,8 @@ in {
           name,
           rules ? [],
           downloads,
-        }: with downloads.artifact;
+        }:
+        with downloads.artifact;
         derivation {
           name = replaceStrings [":"] ["-"] name;
           inherit system;
@@ -58,9 +64,7 @@ in {
           PATH = nixpkgs.coreutils + /bin;
         };
         java = nixpkgs.${"jdk" + javaVersion.majorVersion} + /bin/java;
-        assets = with assetIndex; {
-          
-        };
-      in libs;
+        assets = with assetIndex; trace (fetchJSONsha1 sha1 url) null;
+      in assets;
   in listToAttrs (map gener raw.versions);
-} 
+}
