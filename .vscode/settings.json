@@ -4,5 +4,7 @@
     "files.autoSave": "onFocusChange",
     "files.readonlyInclude": {
         "**.lock": true
-    }
+    },
+    "workbench.colorTheme": "Aofuji",
+    "workbench.iconTheme": "vs-seti"
 }

@@ -4,11 +4,17 @@
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
     flake-utils.url = "github:numtide/flake-utils";
+    extensions.url = "github:nix-community/nix-vscode-extensions";
   };
 
-  outputs = { self, nixpkgs, flake-utils }: 
-    flake-utils.lib.eachDefaultSystem (system:
-      let
+  outputs = {
+    self,
+    nixpkgs,
+    flake-utils,
+    extensions,
+  }:
+    flake-utils.lib.eachDefaultSystem (
+      system: let
         pkgs = import nixpkgs {
           system = "${system}";
         };
@@ -18,10 +24,10 @@
           nixpkgs = pkgs;
         };
         devShells.default = import ./shell.nix {
-          inherit pkgs;
+          inherit pkgs system;
         };
         devShells.ide = import ./shell.nix {
-          inherit pkgs;
+          inherit pkgs system extensions;
           ide = true;
         };
         formatter = pkgs.alejandra;
@@ -32,15 +38,16 @@
           ro = {
             bin = /bin;
             usr.bin = /usr/bin;
+            nix = /nix;
           };
           rw = {
             tmp = /tmp;
           };
-          command = "ls /";
+          command = "echo *";
         };
         apps.encase = {
           type = "app";
-          program = packages.encase + /bin/encase.sh;
+          program = "${packages.encase}";
         };
       }
     );

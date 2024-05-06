@@ -1,5 +1,5 @@
 let
-  inherit (builtins) concatMap isAttrs;
+  inherit (builtins) concatMap isAttrs concatStringsSep map trace;
 in
   {
     name,
@@ -7,6 +7,9 @@ in
     pkgs ? import <nixpkgs> {},
     ro ? {nix = /nix;},
     rw ? {},
+    wd ? /.,
+    proc ? null,
+    postBootstrap ? null,
     command,
   }: let
     inherit (pkgs.lib.attrsets) attrsToList;
@@ -33,9 +36,34 @@ in
         ["-p"]
         ++ map (a: builtins.placeholder "out" + "/" + a.name) (roMounts ++ rwMounts);
     };
-  in
-    pkgs.writeScriptBin "encase.sh" ''
-      #!${pkgs.bash}/bin/bash
-      echo "TODO!"
-      ${pkgs.tree}/bin/tree ${rootfs}
-    ''
+    ifC = cond: cmd: if cond != null then cmd else "";
+    textfile = { name, text, executable ? false }: derivation {
+
+    }
+    bootstrap = textfile {
+      name = "${name}-encase-bootstrap.sh";
+      text = ''
+        #!${pkgs.bash}/bin/bash
+        set -ex
+        mount -Rr ${rootfs} $dir
+        cd $dir
+        ${ifC proc "mount -t proc proc ${toString proc}"}
+        ${concatStringsSep "\n" (map ({ name, value }: "mount -Br ${toString value} ${"./" + (/. + name)}") roMounts)}
+        ${concatStringsSep "\n" (map ({ name, value }: "mount -B  ${toString value} ${"./" + (/. + name)}") rwMounts)}
+        unshare -R . -w ${toString wd} -- ${command}
+      '';
+      executable = true;
+    };
+    launch = textfile {
+      name = "${name}-encase.sh";
+      text = ''
+        #!${pkgs.bash}/bin/bash
+        set -ex
+        export dir=$(mktemp -d)
+        trap 'rm -rf $dir' EXIT
+        cd $dir
+        unshare -r -C unshare -n -i -u -T -p -f unshare -m ${bootstrap}
+      '';
+      executable = true;
+    };
+  in launch
