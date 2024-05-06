@@ -39,11 +39,12 @@
             bin = /bin;
             usr.bin = /usr/bin;
             nix = /nix;
+            etc = ./etc;
           };
           rw = {
             tmp = /tmp;
           };
-          command = "echo *";
+          command = "set -x; ${pkgs.coreutils}/bin/ls; ${pkgs.coreutils}/bin/whoami";
         };
         apps.encase = {
           type = "app";

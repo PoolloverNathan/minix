@@ -38,19 +38,27 @@ in
     };
     ifC = cond: cmd: if cond != null then cmd else "";
     textfile = { name, text, executable ? false }: derivation {
-
-    }
+      inherit name system text executable; passAsFile = ["text"];
+      # builder = pkgs.coreutils + /bin/install;
+      # args = ["-m" (if executable then 555 else 444) "--" (builtins.toFile name text) (builtins.placeholder "out")];
+      builder = pkgs.bash + /bin/bash;
+      inherit (pkgs) coreutils;
+      args = [(builtins.toFile "textfile.sh" ''
+        $coreutils/bin/cp $textPath $out
+        test $executable && $coreutils/bin/chmod +x $out
+      '')];
+    };
     bootstrap = textfile {
       name = "${name}-encase-bootstrap.sh";
       text = ''
         #!${pkgs.bash}/bin/bash
-        set -ex
+        set -e
         mount -Rr ${rootfs} $dir
         cd $dir
         ${ifC proc "mount -t proc proc ${toString proc}"}
-        ${concatStringsSep "\n" (map ({ name, value }: "mount -Br ${toString value} ${"./" + (/. + name)}") roMounts)}
-        ${concatStringsSep "\n" (map ({ name, value }: "mount -B  ${toString value} ${"./" + (/. + name)}") rwMounts)}
-        unshare -R . -w ${toString wd} -- ${command}
+        ${concatStringsSep "\n" (map ({ name, value }: "mount -Rr ${toString value} ${"." + toString (/. + name)}") roMounts)}
+        ${concatStringsSep "\n" (map ({ name, value }: "mount -R  ${toString value} ${"." + toString (/. + name)}") rwMounts)}
+        unshare -R . -w ${toString wd} -- ${pkgs.bash}/bin/bash ${textfile { inherit name; text = command; executable = true; }}
       '';
       executable = true;
     };
@@ -58,7 +66,7 @@ in
       name = "${name}-encase.sh";
       text = ''
         #!${pkgs.bash}/bin/bash
-        set -ex
+        set -e
         export dir=$(mktemp -d)
         trap 'rm -rf $dir' EXIT
         cd $dir
