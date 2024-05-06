@@ -31,7 +31,11 @@
           ide = true;
         };
         formatter = pkgs.alejandra;
-        packages.default = lib.minecraft."1.20.1";
+        packages.default = lib.minecraft."1.20.1".encase;
+        apps.default = {
+          type = "app";
+          program = "${packages.default {}}";
+        };
         packages.encase = import ./encase.nix {
           inherit pkgs system;
           name = "encase-test";
