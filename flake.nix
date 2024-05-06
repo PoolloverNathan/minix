@@ -2,7 +2,7 @@
   description = "A dev environment for Figura";
 
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
+    nixpkgs.url = "github:nixos/nixpkgs/23.05";
     flake-utils.url = "github:numtide/flake-utils";
     extensions.url = "github:nix-community/nix-vscode-extensions";
   };
